@@ -19,10 +19,12 @@ mongoose.connect(process.env.MONGO_URI || "mongodb+srv://palanidevelopers:palani
 }).then(() => console.log("✅ Connected to MongoDB"))
   .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
-// ✅ Mongoose Schemas
+
 const faceSchema = new mongoose.Schema({
-  name: String,
-  descriptor: [Number],
+  name: { type: String, required: true },
+  descriptor: { type: [Number], required: true },
+  // Optional phone field (uncomment if needed)
+  // phone: { type: String, unique: true, sparse: true }
 });
 const Face = mongoose.model("Face", faceSchema);
 
@@ -32,33 +34,28 @@ const attendanceSchema = new mongoose.Schema({
 });
 const Attendance = mongoose.model("Attendance", attendanceSchema);
 
-// ✅ Register face
 app.post('/register', async (req, res) => {
   try {
     const { name, descriptor } = req.body;
-
     if (!name || !descriptor) {
       return res.status(400).send("Missing name or descriptor");
     }
 
-    // Optional: Validate descriptor is an array of numbers
-    if (!Array.isArray(descriptor) || !descriptor.every(d => typeof d === 'number')) {
-      return res.status(400).send("Descriptor must be an array of numbers");
-    }
-
-    // Remove existing face with the same name
     await Face.findOneAndDelete({ name });
-
-    // Save new face data
     const face = new Face({ name, descriptor });
     await face.save();
 
     res.send("✅ Face registered successfully");
-  } catch (error) {
-    console.error("Registration error:", error);
-    res.status(500).send("❌ Server error during registration");
+  } catch (err) {
+    console.error(err);
+    if (err.code === 11000) {
+      res.status(409).send("❌ Duplicate entry");
+    } else {
+      res.status(500).send("❌ Server error");
+    }
   }
 });
+
 
 
 // ✅ Check face

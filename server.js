@@ -22,8 +22,7 @@ mongoose.connect(process.env.MONGO_URI || "mongodb+srv://palanidevelopers:palani
 // ✅ Mongoose Schemas
 const faceSchema = new mongoose.Schema({
  name: { type: String, required: true, unique: true },
-  descriptor: [Number],
-  
+  descriptor: { type: [Number], unique: true }  
 });
 const Face = mongoose.model("Face", faceSchema);
 

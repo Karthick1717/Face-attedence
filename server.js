@@ -2,18 +2,24 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
-app.use(cors());
+
+// ✅ Allow all origins
+app.use(cors()); // ⚠️ This allows ALL domains (including malicious ones)
+
 app.use(express.static('public'));
 app.use(bodyParser.json({ limit: '10mb' }));
 
-mongoose.connect("mongodb+srv://palanidevelopers:palani123@cluster0.4a7h51a.mongodb.net/Hospital?retryWrites=true&w=majority&appName=Cluster0", {
+// ✅ MongoDB connection
+mongoose.connect(process.env.MONGO_URI || "mongodb+srv://palanidevelopers:palani123@cluster0.4a7h51a.mongodb.net/Hospital?retryWrites=true&w=majority&appName=Cluster0", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 }).then(() => console.log("✅ Connected to MongoDB"))
   .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
+// ✅ Mongoose Schemas
 const faceSchema = new mongoose.Schema({
   name: String,
   descriptor: [Number],
@@ -26,6 +32,7 @@ const attendanceSchema = new mongoose.Schema({
 });
 const Attendance = mongoose.model("Attendance", attendanceSchema);
 
+// ✅ Register face
 app.post('/register', async (req, res) => {
   const { name, descriptor } = req.body;
   if (!name || !descriptor) return res.status(400).send("Missing name or descriptor");
@@ -36,6 +43,7 @@ app.post('/register', async (req, res) => {
   res.send("✅ Face registered successfully");
 });
 
+// ✅ Check face
 app.post('/check', async (req, res) => {
   const { descriptor } = req.body;
   if (!descriptor) return res.status(400).json({ error: 'Missing descriptor' });
@@ -51,12 +59,13 @@ app.post('/check', async (req, res) => {
   res.json({ exists: false });
 });
 
-
+// ✅ Get all registered faces
 app.get('/faces', async (req, res) => {
   const faces = await Face.find();
   res.json(faces);
 });
 
+// ✅ Mark attendance
 app.post('/mark', async (req, res) => {
   const { descriptor } = req.body;
   if (!descriptor) return res.status(400).send("Missing descriptor");
@@ -82,6 +91,7 @@ app.post('/mark', async (req, res) => {
   }
 });
 
+// ✅ Euclidean distance
 function euclideanDistance(a, b) {
   let sum = 0;
   for (let i = 0; i < a.length; i++) {
@@ -90,6 +100,7 @@ function euclideanDistance(a, b) {
   return Math.sqrt(sum);
 }
 
+// ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);

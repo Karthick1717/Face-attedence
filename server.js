@@ -19,12 +19,11 @@ mongoose.connect(process.env.MONGO_URI || "mongodb+srv://palanidevelopers:palani
 }).then(() => console.log("✅ Connected to MongoDB"))
   .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
-
+// ✅ Mongoose Schemas
 const faceSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  descriptor: { type: [Number], required: true },
-  // Optional phone field (uncomment if needed)
-  // phone: { type: String, unique: true, sparse: true }
+ name: { type: String, required: true, unique: true },
+  descriptor: [Number],
+  
 });
 const Face = mongoose.model("Face", faceSchema);
 

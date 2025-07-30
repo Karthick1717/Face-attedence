@@ -34,14 +34,32 @@ const Attendance = mongoose.model("Attendance", attendanceSchema);
 
 // ✅ Register face
 app.post('/register', async (req, res) => {
-  const { name, descriptor } = req.body;
-  if (!name || !descriptor) return res.status(400).send("Missing name or descriptor");
+  try {
+    const { name, descriptor } = req.body;
 
-  await Face.findOneAndDelete({ name });
-  const face = new Face({ name, descriptor });
-  await face.save();
-  res.send("✅ Face registered successfully");
+    if (!name || !descriptor) {
+      return res.status(400).send("Missing name or descriptor");
+    }
+
+    // Optional: Validate descriptor is an array of numbers
+    if (!Array.isArray(descriptor) || !descriptor.every(d => typeof d === 'number')) {
+      return res.status(400).send("Descriptor must be an array of numbers");
+    }
+
+    // Remove existing face with the same name
+    await Face.findOneAndDelete({ name });
+
+    // Save new face data
+    const face = new Face({ name, descriptor });
+    await face.save();
+
+    res.send("✅ Face registered successfully");
+  } catch (error) {
+    console.error("Registration error:", error);
+    res.status(500).send("❌ Server error during registration");
+  }
 });
+
 
 // ✅ Check face
 app.post('/check', async (req, res) => {

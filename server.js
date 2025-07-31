@@ -27,11 +27,6 @@ const faceSchema = new mongoose.Schema({
 
 const Face = mongoose.model("Face", faceSchema);
 
-const attendanceSchema = new mongoose.Schema({
-  name: String,
-  date: { type: Date, default: Date.now },
-});
-const Attendance = mongoose.model("Attendance", attendanceSchema);
 
 app.post('/register', async (req, res) => {
   try {
@@ -79,40 +74,40 @@ app.get('/faces', async (req, res) => {
   res.json(faces);
 });
 
-// ✅ Mark attendance
-app.post('/mark', async (req, res) => {
-  const { descriptor } = req.body;
-  if (!descriptor) return res.status(400).send("Missing descriptor");
+// // ✅ Mark attendance
+// app.post('/mark', async (req, res) => {
+//   const { descriptor } = req.body;
+//   if (!descriptor) return res.status(400).send("Missing descriptor");
 
-  const allFaces = await Face.find();
-  let bestMatch = null;
-  let minDistance = Infinity;
+//   const allFaces = await Face.find();
+//   let bestMatch = null;
+//   let minDistance = Infinity;
 
-  for (let face of allFaces) {
-    const dist = euclideanDistance(descriptor, face.descriptor);
-    if (dist < minDistance) {
-      minDistance = dist;
-      bestMatch = face;
-    }
-  }
+//   for (let face of allFaces) {
+//     const dist = euclideanDistance(descriptor, face.descriptor);
+//     if (dist < minDistance) {
+//       minDistance = dist;
+//       bestMatch = face;
+//     }
+//   }
 
-  if (minDistance < 0.5) {
-    const log = new Attendance({ name: bestMatch.name });
-    await log.save();
-    res.json({ status: "success", name: bestMatch.name });
-  } else {
-    res.json({ status: "fail", message: "Face not recognized" });
-  }
-});
+//   if (minDistance < 0.5) {
+//     const log = new Attendance({ name: bestMatch.name });
+//     await log.save();
+//     res.json({ status: "success", name: bestMatch.name });
+//   } else {
+//     res.json({ status: "fail", message: "Face not recognized" });
+//   }
+// });
 
-// ✅ Euclidean distance
-function euclideanDistance(a, b) {
-  let sum = 0;
-  for (let i = 0; i < a.length; i++) {
-    sum += (a[i] - b[i]) ** 2;
-  }
-  return Math.sqrt(sum);
-}
+// // ✅ Euclidean distance
+// function euclideanDistance(a, b) {
+//   let sum = 0;
+//   for (let i = 0; i < a.length; i++) {
+//     sum += (a[i] - b[i]) ** 2;
+//   }
+//   return Math.sqrt(sum);
+// }
 
 // ✅ Start server
 const PORT = process.env.PORT || 3000;

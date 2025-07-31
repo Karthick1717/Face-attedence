@@ -19,11 +19,12 @@ mongoose.connect(process.env.MONGO_URI || "mongodb+srv://palanidevelopers:palani
 }).then(() => console.log("✅ Connected to MongoDB"))
   .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
-// ✅ Mongoose Schemas
 const faceSchema = new mongoose.Schema({
- name: { type: String, required: true, unique: true },
-  descriptor: { type: [Number], unique: true }  
+  name: { type: String, required: true, unique: true },
+  phone: { type: String, required: true, unique: true },
+  descriptor: { type: [Number], required: true }
 });
+
 const Face = mongoose.model("Face", faceSchema);
 
 const attendanceSchema = new mongoose.Schema({
@@ -40,7 +41,7 @@ app.post('/register', async (req, res) => {
     }
 
     await Face.findOneAndDelete({ name });
-    const face = new Face({ name, descriptor });
+    const face = new Face({ name, descriptor ,phone:name});
     await face.save();
 
     res.send("✅ Face registered successfully");

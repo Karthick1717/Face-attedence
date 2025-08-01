@@ -6,8 +6,8 @@ require('dotenv').config();
 
 const app = express();
 
-// ✅ Allow all origins
-app.use(cors()); // ⚠️ This allows ALL domains (including malicious ones)
+// ✅ Allow all origins — FOR DEVELOPMENT ONLY
+app.use(cors()); // Allows all domains (use carefully)
 
 app.use(express.static('public'));
 app.use(bodyParser.json({ limit: '10mb' }));
@@ -19,6 +19,7 @@ mongoose.connect(process.env.MONGO_URI || "mongodb+srv://palanidevelopers:palani
 }).then(() => console.log("✅ Connected to MongoDB"))
   .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
+// ✅ Face schema
 const faceSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
   phone: { type: String, required: true, unique: true },
@@ -27,12 +28,15 @@ const faceSchema = new mongoose.Schema({
 
 const Face = mongoose.model("Face", faceSchema);
 
+// ✅ Attendance schema
 const attendanceSchema = new mongoose.Schema({
   name: String,
   date: { type: Date, default: Date.now },
 });
+
 const Attendance = mongoose.model("Attendance", attendanceSchema);
 
+// ✅ Register face
 app.post('/register', async (req, res) => {
   try {
     const { name, descriptor } = req.body;
@@ -40,8 +44,8 @@ app.post('/register', async (req, res) => {
       return res.status(400).send("Missing name or descriptor");
     }
 
-    await Face.findOneAndDelete({ name });
-    const face = new Face({ name, descriptor ,phone:name});
+    await Face.findOneAndDelete({ name }); // remove old entry if exists
+    const face = new Face({ name, descriptor, phone: name });
     await face.save();
 
     res.send("✅ Face registered successfully");
@@ -54,8 +58,6 @@ app.post('/register', async (req, res) => {
     }
   }
 });
-
-
 
 // ✅ Check face
 app.post('/check', async (req, res) => {
@@ -79,8 +81,7 @@ app.get('/faces', async (req, res) => {
   res.json(faces);
 });
 
-
-
+// ✅ Mark attendance
 app.post('/mark', async (req, res) => {
   const { descriptor } = req.body;
   if (!descriptor) return res.status(400).json({ status: "fail", message: "Missing descriptor" });
@@ -99,10 +100,13 @@ app.post('/mark', async (req, res) => {
     }
 
     if (minDistance < 0.5 && bestMatch) {
+      // mark attendance
+      await new Attendance({ name: bestMatch.name }).save();
+
       return res.json({
         status: "success",
         name: bestMatch.name,
-        phone: bestMatch.phone, // send phone for attendance marking
+        phone: bestMatch.phone,
       });
     } else {
       return res.json({ status: "fail", message: "Face not recognized" });
@@ -113,7 +117,7 @@ app.post('/mark', async (req, res) => {
   }
 });
 
-// ✅ Euclidean distance
+// ✅ Euclidean distance function
 function euclideanDistance(a, b) {
   let sum = 0;
   for (let i = 0; i < a.length; i++) {

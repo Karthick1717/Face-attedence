@@ -28,13 +28,7 @@ const faceSchema = new mongoose.Schema({
 
 const Face = mongoose.model("Face", faceSchema);
 
-// ✅ Attendance schema
-const attendanceSchema = new mongoose.Schema({
-  name: String,
-  date: { type: Date, default: Date.now },
-});
 
-const Attendance = mongoose.model("Attendance", attendanceSchema);
 
 // ✅ Register face
 app.post('/register', async (req, res) => {
@@ -81,10 +75,11 @@ app.get('/faces', async (req, res) => {
   res.json(faces);
 });
 
-// ✅ Mark attendance
 app.post('/mark', async (req, res) => {
   const { descriptor } = req.body;
-  if (!descriptor) return res.status(400).json({ status: "fail", message: "Missing descriptor" });
+  if (!descriptor) {
+    return res.status(400).json({ status: "fail", message: "Missing descriptor" });
+  }
 
   try {
     const allFaces = await Face.find();
@@ -100,9 +95,7 @@ app.post('/mark', async (req, res) => {
     }
 
     if (minDistance < 0.5 && bestMatch) {
-      // mark attendance
-      await new Attendance({ name: bestMatch.name }).save();
-
+      // ✅ Removed duplicate attendance saving
       return res.json({
         status: "success",
         name: bestMatch.name,
@@ -116,6 +109,7 @@ app.post('/mark', async (req, res) => {
     return res.status(500).json({ status: "error", message: "Server error" });
   }
 });
+
 
 // ✅ Euclidean distance function
 function euclideanDistance(a, b) {
